@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<restrictions xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <restriction
+        android:key="ringtone_sas_url"
+        android:restrictionType="string"
+        android:title="@string/restriction_sas_url_title"
+        android:description="@string/restriction_sas_url_desc" />
+
+    <restriction
+        android:key="contact_phone_numbers"
+        android:restrictionType="string"
+        android:title="@string/restriction_phone_numbers_title"
+        android:description="@string/restriction_phone_numbers_desc" />
+
+    <restriction
+        android:key="ringtone_display_name"
+        android:restrictionType="string"
+        android:title="@string/restriction_display_name_title"
+        android:defaultValue="Enterprise Ringtone"
+        android:description="@string/restriction_display_name_desc" />
+
+</restrictions>

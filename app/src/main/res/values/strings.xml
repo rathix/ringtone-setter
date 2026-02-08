@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ringtone Setter</string>
+    <string name="restriction_sas_url_title">Ringtone SAS URL</string>
+    <string name="restriction_sas_url_desc">Full Azure Blob Storage SAS URL for the ringtone file</string>
+    <string name="restriction_phone_numbers_title">Contact Phone Numbers</string>
+    <string name="restriction_phone_numbers_desc">Comma-separated E.164 phone numbers to assign the ringtone to</string>
+    <string name="restriction_display_name_title">Ringtone Display Name</string>
+    <string name="restriction_display_name_desc">Display name for the ringtone in system settings</string>
+</resources>
