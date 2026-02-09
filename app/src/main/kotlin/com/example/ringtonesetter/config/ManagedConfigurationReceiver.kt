@@ -9,6 +9,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.work.WorkRequest
 import com.example.ringtonesetter.monitor.RingtoneConfigurationWorker
 import java.util.concurrent.TimeUnit
 
@@ -19,7 +20,7 @@ class ManagedConfigurationReceiver : BroadcastReceiver() {
             val workRequest = OneTimeWorkRequestBuilder<RingtoneConfigurationWorker>()
                 .setBackoffCriteria(
                     BackoffPolicy.LINEAR,
-                    OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                    WorkRequest.MIN_BACKOFF_MILLIS,
                     TimeUnit.MILLISECONDS
                 )
                 .build()
