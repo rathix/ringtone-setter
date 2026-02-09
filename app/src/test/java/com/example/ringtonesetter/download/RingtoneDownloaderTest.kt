@@ -1,6 +1,7 @@
 package com.example.ringtonesetter.download
 
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
 import okio.Buffer
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -18,7 +19,7 @@ class RingtoneDownloaderTest {
     @Test
     fun `download writes content to output stream`() {
         val expectedContent = "test audio content".toByteArray()
-        val responseBody = ResponseBody.create(MediaType.parse("audio/mpeg"), expectedContent)
+        val responseBody = ResponseBody.create("audio/mpeg".toMediaType(), expectedContent)
         val response = Response.Builder()
             .request(Request.Builder().url("http://example.com/ringtone.mp3").build())
             .protocol(Protocol.HTTP_1_1)
