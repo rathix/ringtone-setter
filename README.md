@@ -66,6 +66,19 @@ JAVA_HOME=/opt/homebrew/opt/openjdk@17 ./gradlew assembleRelease
 
 Release builds have ProGuard minification enabled.
 
+### Release Signing
+
+To produce a signed release APK, provide these Gradle properties (typically via CI secrets):
+
+```properties
+RELEASE_STORE_FILE=/path/to/keystore.jks
+RELEASE_STORE_PASSWORD=...
+RELEASE_KEY_ALIAS=...
+RELEASE_KEY_PASSWORD=...
+```
+
+If these properties are not set, `assembleRelease` produces an unsigned release artifact.
+
 ### Local SDK Path
 
 The Android SDK path is configured in `local.properties`:
@@ -79,7 +92,7 @@ Adjust this to match your local Android SDK installation.
 ## Architecture
 
 ```
-app/src/main/kotlin/com/example/ringtonesetter/
+app/src/main/kotlin/com/kennyandries/ringtonesetter/
 ├── RingtoneSetterApplication.kt        # Manual DI container
 ├── MainActivity.kt                     # Permission handling + Compose host
 ├── config/

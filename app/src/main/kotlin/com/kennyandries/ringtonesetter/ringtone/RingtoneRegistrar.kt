@@ -51,6 +51,16 @@ class RingtoneRegistrar(private val context: Context) {
     }
 
     /**
+     * Updates the ringtone MIME type after download when the server reports a more accurate type.
+     */
+    fun updateMimeType(uri: Uri, mimeType: String) {
+        val values = ContentValues().apply {
+            put(MediaStore.Audio.Media.MIME_TYPE, mimeType)
+        }
+        context.contentResolver.update(uri, values, null, null)
+    }
+
+    /**
      * Finalizes the ringtone entry by clearing IS_PENDING (API 29+).
      * Call this after the download stream has been fully written and closed.
      */

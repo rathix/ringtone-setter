@@ -28,7 +28,7 @@
 
         <receiver
             android:name=".config.ManagedConfigurationReceiver"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.content.action.APPLICATION_RESTRICTIONS_CHANGED" />
             </intent-filter>

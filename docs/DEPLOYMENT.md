@@ -102,9 +102,9 @@ On Android 9 and below, an additional prompt appears:
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| "Ringtone SAS URL is required" | `ringtone_sas_url` is missing or empty | Verify the key name and value in your Intune policy |
-| "At least one contact phone number is required" | `contact_phone_numbers` is missing or empty | Add at least one phone number |
-| "Invalid phone number format" | A phone number doesn't match E.164 | Ensure all numbers start with `+` and contain only digits |
+| "Ringtone SAS URL is not configured" | `ringtone_sas_url` is missing or empty | Verify the key name and value in your Intune policy |
+| "No contact phone numbers configured" | `contact_phone_numbers` is missing or empty | Add at least one phone number |
+| "Invalid E.164 phone numbers: ..." | One or more values in `contact_phone_numbers` do not match E.164 | Ensure all numbers start with `+` and contain only digits |
 
 ### Configuration Not Appearing
 
@@ -125,7 +125,8 @@ The app uses Android's `PhoneLookup` API which handles common format variations.
 - Verify the SAS URL hasn't expired
 - Ensure the device has internet connectivity
 - Check that the SAS URL has **Read** permission on the blob
-- The app does not retry on failure — tap **Apply Ringtone** again after resolving the issue
+- Manual runs from the app do not retry automatically — tap **Apply Ringtone** again after resolving the issue
+- Managed configuration change processing retries automatically (up to 3 attempts with backoff)
 
 ### Ringtone Not Playing for Calls
 
