@@ -1,10 +1,10 @@
-package com.example.ringtonesetter.monitor
+package com.kennyandries.ringtonesetter.monitor
 
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.example.ringtonesetter.RingtoneSetterApplication
-import com.example.ringtonesetter.config.ManagedConfig
+import com.kennyandries.ringtonesetter.RingtoneSetterApplication
+import com.kennyandries.ringtonesetter.config.ManagedConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

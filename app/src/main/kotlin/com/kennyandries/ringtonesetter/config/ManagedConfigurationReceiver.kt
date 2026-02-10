@@ -1,16 +1,16 @@
-package com.example.ringtonesetter.config
+package com.kennyandries.ringtonesetter.config
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.example.ringtonesetter.RingtoneSetterApplication
+import com.kennyandries.ringtonesetter.RingtoneSetterApplication
 import androidx.work.BackoffPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
-import com.example.ringtonesetter.monitor.RingtoneConfigurationWorker
+import com.kennyandries.ringtonesetter.monitor.RingtoneConfigurationWorker
 import java.util.concurrent.TimeUnit
 
 class ManagedConfigurationReceiver : BroadcastReceiver() {

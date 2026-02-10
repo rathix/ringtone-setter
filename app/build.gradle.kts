@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.ringtonesetter"
+    namespace = "com.kennyandries.ringtonesetter"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.ringtonesetter"
+        applicationId = "com.kennyandries.ringtonesetter"
         minSdk = 26
         targetSdk = 35
         versionCode = 1

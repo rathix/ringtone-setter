@@ -1,4 +1,4 @@
-package com.example.ringtonesetter.config
+package com.kennyandries.ringtonesetter.config
 
 import android.content.Context
 import android.content.RestrictionsManager

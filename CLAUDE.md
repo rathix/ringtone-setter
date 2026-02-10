@@ -22,7 +22,7 @@ Requires:
 ## Architecture
 
 ```
-app/src/main/kotlin/com/example/ringtonesetter/
+app/src/main/kotlin/com/kennyandries/ringtonesetter/
 ├── RingtoneSetterApplication.kt        # DI container
 ├── MainActivity.kt                     # Permission handling, Compose host
 ├── config/                             # Intune managed config reading + validation

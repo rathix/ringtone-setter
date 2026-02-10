@@ -1,6 +1,6 @@
-package com.example.ringtonesetter.viewmodel
+package com.kennyandries.ringtonesetter.viewmodel
 
-import com.example.ringtonesetter.contacts.ContactRingtoneAssigner
+import com.kennyandries.ringtonesetter.contacts.ContactRingtoneAssigner
 
 data class RingtoneSetterUiState(
     val configStatus: ConfigStatus = ConfigStatus.Loading,

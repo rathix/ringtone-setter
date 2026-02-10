@@ -1,4 +1,4 @@
-package com.example.ringtonesetter.ui
+package com.kennyandries.ringtonesetter.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,13 +28,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.ringtonesetter.contacts.ContactRingtoneAssigner
-import com.example.ringtonesetter.ui.theme.Green700
-import com.example.ringtonesetter.ui.theme.Red700
-import com.example.ringtonesetter.viewmodel.ConfigStatus
-import com.example.ringtonesetter.viewmodel.OperationPhase
-import com.example.ringtonesetter.viewmodel.RingtoneSetterUiState
-import com.example.ringtonesetter.viewmodel.RingtoneSetterViewModel
+import com.kennyandries.ringtonesetter.contacts.ContactRingtoneAssigner
+import com.kennyandries.ringtonesetter.ui.theme.Green700
+import com.kennyandries.ringtonesetter.ui.theme.Red700
+import com.kennyandries.ringtonesetter.viewmodel.ConfigStatus
+import com.kennyandries.ringtonesetter.viewmodel.OperationPhase
+import com.kennyandries.ringtonesetter.viewmodel.RingtoneSetterUiState
+import com.kennyandries.ringtonesetter.viewmodel.RingtoneSetterViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

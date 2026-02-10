@@ -1,4 +1,4 @@
-package com.example.ringtonesetter.contacts
+package com.kennyandries.ringtonesetter.contacts
 
 import android.content.ContentValues
 import android.content.Context

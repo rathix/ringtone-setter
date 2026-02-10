@@ -1,4 +1,4 @@
-package com.example.ringtonesetter.ringtone
+package com.kennyandries.ringtonesetter.ringtone
 
 import android.content.ContentValues
 import android.content.Context

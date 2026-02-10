@@ -1,12 +1,12 @@
-package com.example.ringtonesetter.viewmodel
+package com.kennyandries.ringtonesetter.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.ringtonesetter.config.ManagedConfig
-import com.example.ringtonesetter.config.ManagedConfigReader
-import com.example.ringtonesetter.contacts.ContactRingtoneAssigner
-import com.example.ringtonesetter.download.RingtoneDownloader
-import com.example.ringtonesetter.ringtone.RingtoneRegistrar
+import com.kennyandries.ringtonesetter.config.ManagedConfig
+import com.kennyandries.ringtonesetter.config.ManagedConfigReader
+import com.kennyandries.ringtonesetter.contacts.ContactRingtoneAssigner
+import com.kennyandries.ringtonesetter.download.RingtoneDownloader
+import com.kennyandries.ringtonesetter.ringtone.RingtoneRegistrar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

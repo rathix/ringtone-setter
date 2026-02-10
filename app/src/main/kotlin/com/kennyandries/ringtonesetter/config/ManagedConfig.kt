@@ -1,4 +1,4 @@
-package com.example.ringtonesetter.config
+package com.kennyandries.ringtonesetter.config
 
 data class ManagedConfig(
     val ringtoneSasUrl: String,

@@ -1,4 +1,4 @@
-package com.example.ringtonesetter
+package com.kennyandries.ringtonesetter
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -11,9 +11,9 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.ringtonesetter.ui.RingtoneSetterScreen
-import com.example.ringtonesetter.ui.theme.RingtoneSetterTheme
-import com.example.ringtonesetter.viewmodel.RingtoneSetterViewModel
+import com.kennyandries.ringtonesetter.ui.RingtoneSetterScreen
+import com.kennyandries.ringtonesetter.ui.theme.RingtoneSetterTheme
+import com.kennyandries.ringtonesetter.viewmodel.RingtoneSetterViewModel
 
 class MainActivity : ComponentActivity() {
 

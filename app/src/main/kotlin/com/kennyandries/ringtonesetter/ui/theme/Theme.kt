@@ -1,4 +1,4 @@
-package com.example.ringtonesetter.ui.theme
+package com.kennyandries.ringtonesetter.ui.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
