@@ -34,17 +34,25 @@ class RingtoneConfigurationWorker(
                 val prepared = registrar.prepare(config.ringtoneDisplayName, "audio/mpeg")
 
                 try {
-                    prepared.outputStream.use { outputStream ->
+                    val downloadResult = prepared.outputStream.use { outputStream ->
                         downloader.download(config.ringtoneSasUrl, outputStream)
                     }
+
+                    registrar.updateMimeType(prepared.uri, downloadResult.mimeType)
 
                     // 2. Finalize
                     registrar.finalize(prepared.uri)
 
                     // 3. Assign
-                    assigner.assign(config.contactPhoneNumbers, prepared.uri)
+                    val assignmentResults = assigner.assign(config.contactPhoneNumbers, prepared.uri)
 
-                    Result.success()
+                    if (assignmentResults.all { it.success }) {
+                        Result.success()
+                    } else if (runAttemptCount < 3) {
+                        Result.retry()
+                    } else {
+                        Result.failure()
+                    }
                 } catch (e: Exception) {
                     registrar.cleanup(prepared.uri)
                     throw e

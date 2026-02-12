@@ -15,28 +15,29 @@ class RingtoneDownloader(private val client: OkHttpClient) {
      */
     fun download(url: String, outputStream: OutputStream): DownloadResult {
         val request = Request.Builder().url(url).build()
-        val response = client.newCall(request).execute()
-
-        if (!response.isSuccessful) {
-            throw IOException("Download failed: HTTP ${response.code}")
-        }
-
-        val body = response.body ?: throw IOException("Download failed: empty response body")
-        val mimeType = body.contentType()?.let { "${it.type}/${it.subtype}" }
-            ?: "audio/mpeg"
-
-        val bytesWritten = body.source().use { source ->
-            var total = 0L
-            val buffer = ByteArray(8192)
-            while (true) {
-                val read = source.inputStream().read(buffer)
-                if (read == -1) break
-                outputStream.write(buffer, 0, read)
-                total += read
+        return client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) {
+                throw IOException("Download failed: HTTP ${response.code}")
             }
-            total
-        }
 
-        return DownloadResult(mimeType, bytesWritten)
+            val body = response.body ?: throw IOException("Download failed: empty response body")
+            val mimeType = body.contentType()?.let { "${it.type}/${it.subtype}" }
+                ?: "audio/mpeg"
+
+            val bytesWritten = body.byteStream().use { inputStream ->
+                var total = 0L
+                val buffer = ByteArray(8192)
+                while (true) {
+                    val read = inputStream.read(buffer)
+                    if (read == -1) break
+                    outputStream.write(buffer, 0, read)
+                    total += read
+                }
+                total
+            }
+
+            outputStream.flush()
+            DownloadResult(mimeType, bytesWritten)
+        }
     }
 }

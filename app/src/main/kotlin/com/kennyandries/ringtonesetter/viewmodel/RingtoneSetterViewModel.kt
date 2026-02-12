@@ -7,6 +7,7 @@ import com.kennyandries.ringtonesetter.config.ManagedConfigReader
 import com.kennyandries.ringtonesetter.contacts.ContactRingtoneAssigner
 import com.kennyandries.ringtonesetter.download.RingtoneDownloader
 import com.kennyandries.ringtonesetter.ringtone.RingtoneRegistrar
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +21,7 @@ class RingtoneSetterViewModel(
     private val downloader: RingtoneDownloader,
     private val registrar: RingtoneRegistrar,
     private val assigner: ContactRingtoneAssigner,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RingtoneSetterUiState())
@@ -71,7 +73,7 @@ class RingtoneSetterViewModel(
             }
 
             try {
-                val (ringtoneUri, _) = withContext(Dispatchers.IO) {
+                val ringtoneUri = withContext(ioDispatcher) {
                     // Prepare MediaStore entry (guess MIME type, will be used for the entry)
                     val prepared = registrar.prepare(config.ringtoneDisplayName, "audio/mpeg")
 
@@ -85,10 +87,12 @@ class RingtoneSetterViewModel(
 
                         _uiState.update { it.copy(operationPhase = OperationPhase.Registering) }
 
+                        registrar.updateMimeType(prepared.uri, downloadResult.mimeType)
+
                         // Finalize the MediaStore entry (clear IS_PENDING)
                         registrar.finalize(prepared.uri)
 
-                        Pair(prepared.uri, downloadResult)
+                        prepared.uri
                     } catch (e: Exception) {
                         registrar.cleanup(prepared.uri)
                         throw e
@@ -97,7 +101,7 @@ class RingtoneSetterViewModel(
 
                 _uiState.update { it.copy(operationPhase = OperationPhase.Assigning) }
 
-                val results = withContext(Dispatchers.IO) {
+                val results = withContext(ioDispatcher) {
                     assigner.assign(config.contactPhoneNumbers, ringtoneUri)
                 }
 
