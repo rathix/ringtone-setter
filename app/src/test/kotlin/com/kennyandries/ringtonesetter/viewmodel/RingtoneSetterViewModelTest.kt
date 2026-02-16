@@ -21,6 +21,7 @@ import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -117,8 +118,10 @@ class RingtoneSetterViewModelTest {
         assertEquals(OperationPhase.Done, state.operationPhase)
         assertEquals(expectedResults, state.results)
         assertEquals(null, state.error)
-        verify(registrar).updateMimeType(ringtoneUri, "audio/ogg")
-        verify(registrar).finalize(ringtoneUri)
+        inOrder(registrar) {
+            verify(registrar).finalize(ringtoneUri)
+            verify(registrar).updateMimeType(ringtoneUri, "audio/ogg")
+        }
         verify(registrar, never()).cleanup(any())
     }
 

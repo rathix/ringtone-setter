@@ -13,6 +13,10 @@ class RingtoneConfigurationWorker(
     workerParams: WorkerParameters
 ) : CoroutineWorker(appContext, workerParams) {
 
+    companion object {
+        const val MAX_RETRY_ATTEMPTS = 3
+    }
+
     override suspend fun doWork(): Result {
         val app = applicationContext as RingtoneSetterApplication
         val configReader = app.configReader
@@ -29,8 +33,7 @@ class RingtoneConfigurationWorker(
 
         return withContext(Dispatchers.IO) {
             try {
-                // 1. Prepare/Download ringtone
-                // Note: We're reusing the logic conceptually similar to ViewModel but adapted for Worker
+                // 1. Prepare and download ringtone
                 val prepared = registrar.prepare(config.ringtoneDisplayName, "audio/mpeg")
 
                 try {
@@ -38,27 +41,35 @@ class RingtoneConfigurationWorker(
                         downloader.download(config.ringtoneSasUrl, outputStream)
                     }
 
+                    // 2. Finalize the MediaStore entry first, then update MIME type
+                    registrar.finalize(prepared.uri)
                     registrar.updateMimeType(prepared.uri, downloadResult.mimeType)
 
-                    // 2. Finalize
-                    registrar.finalize(prepared.uri)
+                    // 3. Assign to contacts, retrying only failed numbers
+                    var remainingNumbers = config.contactPhoneNumbers
+                    var lastResults = assigner.assign(remainingNumbers, prepared.uri)
 
-                    // 3. Assign
-                    val assignmentResults = assigner.assign(config.contactPhoneNumbers, prepared.uri)
+                    var retries = 0
+                    while (retries < MAX_RETRY_ATTEMPTS) {
+                        val failedNumbers = lastResults
+                            .filter { !it.success }
+                            .map { it.phoneNumber }
 
-                    if (assignmentResults.all { it.success }) {
-                        Result.success()
-                    } else if (runAttemptCount < 3) {
-                        Result.retry()
-                    } else {
-                        Result.failure()
+                        if (failedNumbers.isEmpty()) break
+
+                        retries++
+                        remainingNumbers = failedNumbers
+                        lastResults = assigner.assign(remainingNumbers, prepared.uri)
                     }
+
+                    val allFailed = lastResults.any { !it.success }
+                    if (allFailed) Result.failure() else Result.success()
                 } catch (e: Exception) {
                     registrar.cleanup(prepared.uri)
                     throw e
                 }
             } catch (e: Exception) {
-                if (runAttemptCount < 3) {
+                if (runAttemptCount < MAX_RETRY_ATTEMPTS) {
                     Result.retry()
                 } else {
                     Result.failure()

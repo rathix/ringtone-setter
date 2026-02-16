@@ -87,10 +87,10 @@ class RingtoneSetterViewModel(
 
                         _uiState.update { it.copy(operationPhase = OperationPhase.Registering) }
 
-                        registrar.updateMimeType(prepared.uri, downloadResult.mimeType)
-
-                        // Finalize the MediaStore entry (clear IS_PENDING)
+                        // Finalize the MediaStore entry (clear IS_PENDING) before
+                        // updating MIME type so the entry is no longer pending
                         registrar.finalize(prepared.uri)
+                        registrar.updateMimeType(prepared.uri, downloadResult.mimeType)
 
                         prepared.uri
                     } catch (e: Exception) {
