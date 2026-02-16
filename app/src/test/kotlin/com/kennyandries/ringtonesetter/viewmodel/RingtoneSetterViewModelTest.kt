@@ -21,6 +21,7 @@ import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -57,7 +58,7 @@ class RingtoneSetterViewModelTest {
     @Test
     fun `refreshConfig sets valid status`() {
         val config = ManagedConfig(
-            ringtoneSasUrl = "https://example.com/ringtone.mp3",
+            ringtoneSasUrl = "https://account.blob.core.windows.net/ringtone.mp3",
             contactPhoneNumbers = listOf("+14155552671", "+12125551234"),
             ringtoneDisplayName = "Test Ringtone",
         )
@@ -84,13 +85,13 @@ class RingtoneSetterViewModelTest {
         val configStatus = state.configStatus as ConfigStatus.Invalid
         assertEquals(errors, configStatus.errors)
         assertEquals("Configuration is invalid", state.error)
-        verify(downloader, never()).download(any(), any())
+        verify(downloader, never()).download(any(), any(), any())
     }
 
     @Test
     fun `applyRingtone completes and sets done state on success`() = runTest {
         val config = ManagedConfig(
-            ringtoneSasUrl = "https://example.com/ringtone.ogg",
+            ringtoneSasUrl = "https://account.blob.core.windows.net/ringtone.ogg",
             contactPhoneNumbers = listOf("+14155552671"),
             ringtoneDisplayName = "Ops Ringtone",
         )
@@ -106,7 +107,7 @@ class RingtoneSetterViewModelTest {
 
         whenever(configReader.read()).thenReturn(ManagedConfig.Result.Valid(config))
         whenever(registrar.prepare(eq("Ops Ringtone"), eq("audio/mpeg"))).thenReturn(prepared)
-        whenever(downloader.download(eq("https://example.com/ringtone.ogg"), any()))
+        whenever(downloader.download(eq("https://account.blob.core.windows.net/ringtone.ogg"), any(), any()))
             .thenReturn(RingtoneDownloader.DownloadResult("audio/ogg", 1024))
         whenever(assigner.assign(eq(listOf("+14155552671")), eq(ringtoneUri))).thenReturn(expectedResults)
 
@@ -117,15 +118,17 @@ class RingtoneSetterViewModelTest {
         assertEquals(OperationPhase.Done, state.operationPhase)
         assertEquals(expectedResults, state.results)
         assertEquals(null, state.error)
-        verify(registrar).updateMimeType(ringtoneUri, "audio/ogg")
-        verify(registrar).finalize(ringtoneUri)
+        inOrder(registrar) {
+            verify(registrar).finalize(ringtoneUri)
+            verify(registrar).updateMimeType(ringtoneUri, "audio/ogg")
+        }
         verify(registrar, never()).cleanup(any())
     }
 
     @Test
     fun `applyRingtone returns to idle and reports error when download fails`() = runTest {
         val config = ManagedConfig(
-            ringtoneSasUrl = "https://example.com/ringtone.mp3",
+            ringtoneSasUrl = "https://account.blob.core.windows.net/ringtone.mp3",
             contactPhoneNumbers = listOf("+14155552671"),
             ringtoneDisplayName = "Ops Ringtone",
         )
@@ -134,7 +137,7 @@ class RingtoneSetterViewModelTest {
 
         whenever(configReader.read()).thenReturn(ManagedConfig.Result.Valid(config))
         whenever(registrar.prepare(eq("Ops Ringtone"), eq("audio/mpeg"))).thenReturn(prepared)
-        whenever(downloader.download(eq("https://example.com/ringtone.mp3"), any()))
+        whenever(downloader.download(eq("https://account.blob.core.windows.net/ringtone.mp3"), any(), any()))
             .thenThrow(RuntimeException("Download failed: HTTP 403"))
 
         viewModel.applyRingtone()
@@ -145,5 +148,55 @@ class RingtoneSetterViewModelTest {
         assertTrue(state.error?.contains("HTTP 403") == true)
         verify(registrar).cleanup(ringtoneUri)
         verify(assigner, never()).assign(any(), any())
+    }
+
+    @Test
+    fun `applyRingtone shows error when all contact assignments fail`() = runTest {
+        val config = ManagedConfig(
+            ringtoneSasUrl = "https://account.blob.core.windows.net/ringtone.mp3",
+            contactPhoneNumbers = listOf("+14155552671"),
+            ringtoneDisplayName = "Ops Ringtone",
+        )
+        val ringtoneUri: Uri = mock()
+        val prepared = RingtoneRegistrar.PreparedRingtone(ringtoneUri, ByteArrayOutputStream())
+        val failedResults = listOf(
+            ContactRingtoneAssigner.AssignmentResult(
+                phoneNumber = "+14155552671",
+                success = false,
+                contactName = null,
+                error = "Contact not found",
+            )
+        )
+
+        whenever(configReader.read()).thenReturn(ManagedConfig.Result.Valid(config))
+        whenever(registrar.prepare(eq("Ops Ringtone"), eq("audio/mpeg"))).thenReturn(prepared)
+        whenever(downloader.download(eq("https://account.blob.core.windows.net/ringtone.mp3"), any(), any()))
+            .thenReturn(RingtoneDownloader.DownloadResult("audio/mpeg", 1024))
+        whenever(assigner.assign(eq(listOf("+14155552671")), eq(ringtoneUri))).thenReturn(failedResults)
+
+        viewModel.applyRingtone()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals(OperationPhase.Done, state.operationPhase)
+        assertEquals(failedResults, state.results)
+        assertEquals("Ringtone registered but could not be assigned to any contacts", state.error)
+    }
+
+    @Test
+    fun `sanitizeErrorMessage strips URLs from error messages`() {
+        val error = RuntimeException(
+            "Download failed from https://account.blob.core.windows.net/file.mp3?sv=2020&sig=secret"
+        )
+        val sanitized = sanitizeErrorMessage(error)
+        assertTrue(!sanitized.contains("secret"))
+        assertTrue(!sanitized.contains("blob.core.windows.net"))
+        assertTrue(sanitized.contains("[URL redacted]"))
+    }
+
+    @Test
+    fun `sanitizeErrorMessage preserves messages without URLs`() {
+        val error = RuntimeException("Insufficient disk space: 10MB available")
+        assertEquals("Insufficient disk space: 10MB available", sanitizeErrorMessage(error))
     }
 }

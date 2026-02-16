@@ -30,9 +30,11 @@ class ManagedConfigurationReceiver : BroadcastReceiver() {
                 )
                 .build()
 
+            // Use KEEP to avoid cancelling an in-flight download/assignment.
+            // The running worker will pick up the latest config on its next run.
             WorkManager.getInstance(context).enqueueUniqueWork(
                 "RingtoneConfigUpdate",
-                ExistingWorkPolicy.REPLACE,
+                ExistingWorkPolicy.KEEP,
                 workRequest
             )
         }

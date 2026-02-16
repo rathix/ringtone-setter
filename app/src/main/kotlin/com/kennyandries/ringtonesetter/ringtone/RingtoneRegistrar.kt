@@ -4,15 +4,39 @@ import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
+import android.os.StatFs
 import android.provider.MediaStore
+import android.util.Log
+import java.io.IOException
 import java.io.OutputStream
 
 class RingtoneRegistrar(private val context: Context) {
+
+    companion object {
+        private const val TAG = "RingtoneRegistrar"
+        private const val MIN_FREE_SPACE_BYTES = 50L * 1024 * 1024 // 50 MB safety margin
+    }
 
     data class PreparedRingtone(
         val uri: Uri,
         val outputStream: OutputStream,
     )
+
+    /**
+     * Checks that the device has enough free disk space for a ringtone download.
+     * Throws [IOException] if insufficient space is available.
+     */
+    fun checkAvailableDiskSpace() {
+        val stat = StatFs(Environment.getExternalStorageDirectory().path)
+        val availableBytes = stat.availableBytes
+        if (availableBytes < MIN_FREE_SPACE_BYTES) {
+            throw IOException(
+                "Insufficient disk space: ${availableBytes / 1024 / 1024}MB available, " +
+                    "need at least ${MIN_FREE_SPACE_BYTES / 1024 / 1024}MB"
+            )
+        }
+    }
 
     /**
      * Prepares a MediaStore entry for the ringtone.
@@ -79,8 +103,8 @@ class RingtoneRegistrar(private val context: Context) {
     fun cleanup(uri: Uri) {
         try {
             context.contentResolver.delete(uri, null, null)
-        } catch (_: Exception) {
-            // Best-effort cleanup
+        } catch (e: Exception) {
+            Log.w(TAG, "Best-effort cleanup failed for $uri", e)
         }
     }
 

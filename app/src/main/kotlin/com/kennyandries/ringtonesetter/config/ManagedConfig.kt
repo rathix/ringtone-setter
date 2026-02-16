@@ -1,11 +1,15 @@
 package com.kennyandries.ringtonesetter.config
 
+import java.net.URI
+
 data class ManagedConfig(
     val ringtoneSasUrl: String,
     val contactPhoneNumbers: List<String>,
     val ringtoneDisplayName: String,
 ) {
     companion object {
+        private val ALLOWED_HOSTS = listOf(".blob.core.windows.net")
+
         fun validate(
             sasUrl: String?,
             phoneNumbers: String?,
@@ -15,6 +19,19 @@ data class ManagedConfig(
 
             if (sasUrl.isNullOrBlank()) {
                 errors += "Ringtone SAS URL is not configured"
+            } else {
+                try {
+                    val uri = URI(sasUrl)
+                    if (uri.scheme?.lowercase() != "https") {
+                        errors += "Ringtone SAS URL must use HTTPS"
+                    }
+                    val host = uri.host?.lowercase()
+                    if (host == null || ALLOWED_HOSTS.none { host.endsWith(it) }) {
+                        errors += "Ringtone SAS URL must point to Azure Blob Storage (*.blob.core.windows.net)"
+                    }
+                } catch (_: Exception) {
+                    errors += "Ringtone SAS URL is not a valid URL"
+                }
             }
 
             val numbers = phoneNumbers
