@@ -103,6 +103,9 @@ On Android 9 and below, an additional prompt appears:
 | Error | Cause | Fix |
 |-------|-------|-----|
 | "Ringtone SAS URL is not configured" | `ringtone_sas_url` is missing or empty | Verify the key name and value in your Intune policy |
+| "Ringtone SAS URL must use HTTPS" | URL uses `http://` instead of `https://` | Change the URL to use HTTPS |
+| "Ringtone SAS URL must point to Azure Blob Storage" | URL host is not `*.blob.core.windows.net` | Ensure the SAS URL points to your Azure Blob Storage account |
+| "Ringtone SAS URL is not a valid URL" | Value is malformed or not a URL | Check for typos or encoding issues in the URL |
 | "No contact phone numbers configured" | `contact_phone_numbers` is missing or empty | Add at least one phone number |
 | "Invalid E.164 phone numbers: ..." | One or more values in `contact_phone_numbers` do not match E.164 | Ensure all numbers start with `+` and contain only digits |
 

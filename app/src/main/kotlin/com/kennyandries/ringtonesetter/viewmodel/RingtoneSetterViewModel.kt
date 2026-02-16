@@ -1,5 +1,6 @@
 package com.kennyandries.ringtonesetter.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kennyandries.ringtonesetter.config.ManagedConfig
@@ -23,6 +24,10 @@ class RingtoneSetterViewModel(
     private val assigner: ContactRingtoneAssigner,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "RingtoneSetterVM"
+    }
 
     private val _uiState = MutableStateFlow(RingtoneSetterUiState())
     val uiState: StateFlow<RingtoneSetterUiState> = _uiState.asStateFlow()
@@ -74,11 +79,16 @@ class RingtoneSetterViewModel(
 
             try {
                 val ringtoneUri = withContext(ioDispatcher) {
+                    // Check disk space before starting
+                    registrar.checkAvailableDiskSpace()
+
                     // Prepare MediaStore entry (guess MIME type, will be used for the entry)
                     val prepared = registrar.prepare(config.ringtoneDisplayName, "audio/mpeg")
 
                     try {
                         _uiState.update { it.copy(operationPhase = OperationPhase.Downloading) }
+
+                        Log.d(TAG, "Starting ringtone download for '${config.ringtoneDisplayName}'")
 
                         // Download directly into MediaStore OutputStream
                         val downloadResult = prepared.outputStream.use { outputStream ->
@@ -91,6 +101,8 @@ class RingtoneSetterViewModel(
                         // updating MIME type so the entry is no longer pending
                         registrar.finalize(prepared.uri)
                         registrar.updateMimeType(prepared.uri, downloadResult.mimeType)
+
+                        Log.d(TAG, "Ringtone registered: ${downloadResult.bytesWritten} bytes, type=${downloadResult.mimeType}")
 
                         prepared.uri
                     } catch (e: Exception) {
@@ -105,17 +117,26 @@ class RingtoneSetterViewModel(
                     assigner.assign(config.contactPhoneNumbers, ringtoneUri)
                 }
 
+                val successCount = results.count { it.success }
+                val failCount = results.size - successCount
+                Log.d(TAG, "Assignment complete: $successCount succeeded, $failCount failed")
+
+                val allFailed = results.all { !it.success }
                 _uiState.update {
                     it.copy(
                         operationPhase = OperationPhase.Done,
                         results = results,
+                        error = if (allFailed) {
+                            "Ringtone registered but could not be assigned to any contacts"
+                        } else null,
                     )
                 }
             } catch (e: Exception) {
+                Log.e(TAG, "Apply ringtone failed", e)
                 _uiState.update {
                     it.copy(
                         operationPhase = OperationPhase.Idle,
-                        error = e.message ?: "Unknown error occurred",
+                        error = sanitizeErrorMessage(e),
                     )
                 }
             }
@@ -135,4 +156,14 @@ class RingtoneSetterViewModel(
             )
         }
     }
+}
+
+/**
+ * Strips potential SAS tokens and URL parameters from error messages
+ * to prevent credential leakage in the UI.
+ */
+internal fun sanitizeErrorMessage(e: Exception): String {
+    val message = e.message ?: return "Unknown error occurred"
+    // Remove anything that looks like a URL query string (SAS tokens are query params)
+    return message.replace(Regex("https?://[^\\s]+"), "[URL redacted]")
 }
