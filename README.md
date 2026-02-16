@@ -136,8 +136,8 @@ app/src/main/kotlin/com/kennyandries/ringtonesetter/
 ```
 
 1. **Read config** — `ManagedConfigReader` pulls the SAS URL, phone numbers, and display name from `RestrictionsManager`
-2. **Validate** — `ManagedConfig.validate()` checks URL presence and E.164 phone number format
-3. **Download** — `RingtoneDownloader` streams the file from Azure via OkHttp
+2. **Validate** — `ManagedConfig.validate()` checks HTTPS scheme, Azure Blob Storage domain, and E.164 phone number format
+3. **Download** — `RingtoneDownloader` streams the file from Azure via OkHttp (with 10 MB size limit and Content-Type validation)
 4. **Register** — `RingtoneRegistrar` creates a MediaStore entry in the `Ringtones/` directory
 5. **Assign** — `ContactRingtoneAssigner` looks up each contact by phone number and sets the custom ringtone URI
 

@@ -51,6 +51,8 @@ class RingtoneSetterApplication : Application() {
 
 **ManagedConfig** is a data class with a companion `validate()` function that enforces:
 - SAS URL is present and non-blank
+- SAS URL uses HTTPS scheme
+- SAS URL host matches `*.blob.core.windows.net` (Azure Blob Storage)
 - At least one phone number is provided
 - All phone numbers match E.164 format (`+` followed by 1-15 digits)
 
@@ -58,15 +60,19 @@ class RingtoneSetterApplication : Application() {
 
 **RingtoneDownloader** wraps OkHttp to stream a file from a URL into an `OutputStream`. It returns a `DownloadResult` containing the MIME type (extracted from the HTTP `Content-Type` header, defaulting to `audio/mpeg`) and the number of bytes written.
 
-The download uses an 8 KB buffer and streams directly to the output — the full file is never held in memory.
+The download uses an 8 KB buffer and streams directly to the output — the full file is never held in memory. Additional safeguards:
+- **Content-Type validation** — Only `audio/*` and `application/octet-stream` MIME types are accepted
+- **Size limit** — Downloads are capped at 10 MB (checked via `Content-Length` header and enforced during streaming)
+- **Cooperative cancellation** — Accepts an `isCancelled` callback polled each buffer read, used by `WorkManager` to stop downloads when the worker is cancelled
 
 ### Ringtone (`ringtone/`)
 
 **RingtoneRegistrar** manages the MediaStore lifecycle for ringtone files:
 
-1. **prepare()** — Creates a MediaStore entry with `IS_PENDING=1` (Android 10+), returns a URI and `OutputStream`
-2. **finalize()** — Clears `IS_PENDING`, making the ringtone visible to the system
-3. **cleanup()** — Deletes a partial entry on failure
+1. **checkAvailableDiskSpace()** — Verifies at least 50 MB of free space before starting a download
+2. **prepare()** — Creates a MediaStore entry with `IS_PENDING=1` (Android 10+), returns a URI and `OutputStream`
+3. **finalize()** — Clears `IS_PENDING`, making the ringtone visible to the system
+4. **cleanup()** — Deletes a partial entry on failure
 
 The prepare step first deletes any existing entry with the same display name, making the operation idempotent. This is important for re-runs — updating the ringtone replaces the old one rather than creating duplicates.
 
@@ -132,11 +138,11 @@ All state transitions flow through the ViewModel. The UI is purely declarative �
 
 ## Error Handling Strategy
 
-- **Configuration errors** — Surfaced as a list of human-readable strings in the UI
+- **Configuration errors** — Surfaced as a list of human-readable strings in the UI (includes URL scheme/domain validation)
 - **Download errors** — `IOException` caught, MediaStore entry cleaned up, error shown
 - **Registration errors** — Partial entry cleaned up via `RingtoneRegistrar.cleanup()`
-- **Contact assignment errors** — Captured per-contact in `AssignmentResult`, does not interrupt other assignments
-- **All exceptions** — Caught at the ViewModel level and converted to user-visible error messages
+- **Contact assignment errors** — Captured per-contact in `AssignmentResult`, does not interrupt other assignments. If all assignments fail, an explicit error is shown
+- **All exceptions** — Caught at the ViewModel level, sanitized to strip SAS URLs/tokens, and converted to user-visible error messages
 
 ## Threading Model
 
